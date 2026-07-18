@@ -1,0 +1,247 @@
+{
+  "name": "Automated Email Summarizer & Task Prioritizer",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "The Project: Automated Email Summarizer\n​This tool pulls new emails from a Gmail account, uses an AI model to extract key information and action items, and then organizes those summaries into a Google Sheet or sends them as a notification to Slack/Telegram.\n​Why this project works for your portfolio:\n​Demonstrable Value: It directly addresses \"email clutter,\" a universal business pain point.\n​Technical Breadth: It forces you to use a trigger (Gmail/Webhook), data processing (filtering/formatting), AI logic (LLM node), and output (Google Sheets/Slack/Telegram).\n​Highly Demonstrable: You can easily record a 60-second video demo showing how an email lands in your inbox and how the summary appears in your organized dashboard.",
+        "height": 240,
+        "width": 944
+      },
+      "id": "8ddc2fc7-2e42-4bfd-817e-1fa0f70b9dfd",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -1840
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
+        "options": {}
+      },
+      "id": "60cdf55d-43e5-4fd0-9c43-04f4a92e0db0",
+      "name": "Anthropic Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        -176,
+        32
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1qQAxbHYaTFrSjy4W_t8vjI57xGCUXuoDhLhq6F0Yi1E",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qQAxbHYaTFrSjy4W_t8vjI57xGCUXuoDhLhq6F0Yi1E/edit?usp=drivesdk",
+          "cachedResultName": "Emails"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qQAxbHYaTFrSjy4W_t8vjI57xGCUXuoDhLhq6F0Yi1E/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Summary ": "={{ $json.text }}",
+            "Date ": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date ",
+              "displayName": "Date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary ",
+              "displayName": "Summary ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ded42473-aa9e-4b4d-8353-b43ecf66fcb6",
+      "name": "Email list",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        592,
+        -160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PLK1yLXz0jVf7ryi",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "id": "1e1ead76-84e6-434b-99f0-07d3801313e6",
+      "name": "Gmail Trigger1",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -384,
+        -160
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PQ2uOxHw9SpKfOYU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BJ1SAB7QQ",
+          "mode": "list",
+          "cachedResultName": "all-n8n-testing"
+        },
+        "text": "={{ $json.text }}",
+        "otherOptions": {}
+      },
+      "id": "2ce4a9f9-ee56-4cb0-b950-0caaea064670",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        288,
+        -160
+      ],
+      "webhookId": "ab0e55f8-8c7a-40fb-87f9-2e4570d7c7f4",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "QDeCqaK1edS3ArHk",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert email assistant. Summarize the email below and extract action items.\n\nEMAIL DATA:\nFrom: {{ $json.From }}\nSubject: {{ $json.Subject }}\nBody: {{ $json.snippet }}\n\nINSTRUCTIONS:\n- Write a concise 2-3 sentence summary of what the email is about.\n- List any action items / tasks the recipient needs to do, each as a short bullet.\n- Assign a priority: High, Medium, or Low, based on urgency and deadlines mentioned.\n- If a deadline or date is mentioned, capture it. If none, write \"None\".\n- Keep it factual. Do not invent details not present in the email.\n\nRespond in exactly this format:\n\nSender: <sender>\nSubject: <subject>\nSummary: <2-3 sentence summary>\nAction Items:\n- <item 1>\n- <item 2>\nDeadline: <deadline or \"None\">\nPriority: <High/Medium/Low>",
+        "batching": {}
+      },
+      "id": "09e3e1a8-908e-4259-ba29-6514ee9baa65",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -144,
+        -160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email list": {
+      "main": [
+        []
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Email list",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "73213c59-d863-4947-be56-937a1813d5c3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9f68c03645af2698093b944f39c6c09f20dc21fc528a81fdb26591e884ce4030"
+  },
+  "nodeGroups": [],
+  "id": "fq6ENvfjp26oMjJg",
+  "tags": []
+}
